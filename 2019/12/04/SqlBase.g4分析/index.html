@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="singleStatementSparkSQL语法是通过SqlBase.g4文件进行定义的，当面临开发新的语法支持时，首先需要修改Antlr 4文件，然后重新生成此法分析器，语法分析器和访问者类，最后在AstBuilder等勒种添加相应的访问逻辑，最后编写执行逻辑。从SqlBase.g4文件来看核心语法的入口是singleStatement节点，然后访问statement">
+<meta name="keywords" content="Spark SQL,源码分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SqlBase.g4分析——singleStatement">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;12&#x2F;04&#x2F;SqlBase.g4%E5%88%86%E6%9E%90&#x2F;index.html">
+<meta property="og:site_name" content="LIYAN BLOG">
+<meta property="og:description" content="singleStatementSparkSQL语法是通过SqlBase.g4文件进行定义的，当面临开发新的语法支持时，首先需要修改Antlr 4文件，然后重新生成此法分析器，语法分析器和访问者类，最后在AstBuilder等勒种添加相应的访问逻辑，最后编写执行逻辑。从SqlBase.g4文件来看核心语法的入口是singleStatement节点，然后访问statement">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-01-25T06:12:25.738Z">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2019/12/04/SqlBase.g4%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>SqlBase.g4分析——singleStatement | LIYAN BLOG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LIYAN BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">生活,家庭,计算机</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/04/SqlBase.g4%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SqlBase.g4分析——singleStatement
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-12-04 00:00:00" itemprop="dateCreated datePublished" datetime="2019-12-04T00:00:00+08:00">2019-12-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-01-25 14:12:25" itemprop="dateModified" datetime="2020-01-25T14:12:25+08:00">2020-01-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="singleStatement"><a href="#singleStatement" class="headerlink" title="singleStatement"></a>singleStatement</h1><p>SparkSQL语法是通过SqlBase.g4文件进行定义的，当面临开发新的语法支持时，首先需要修改Antlr 4文件，然后重新生成此法分析器，语法分析器和访问者类，最后在AstBuilder等勒种添加相应的访问逻辑，最后编写执行逻辑。<br>从<code>SqlBase.g4</code>文件来看核心语法的入口是<code>singleStatement</code>节点，然后访问<code>statement</code></p>
+<a id="more"></a>
+
+<h2 id="statement"><a href="#statement" class="headerlink" title="statement"></a>statement</h2><h3 id="1，query-statementDefault"><a href="#1，query-statementDefault" class="headerlink" title="1，query - #statementDefault"></a>1，query - #statementDefault</h3><h3 id="2，USE-use"><a href="#2，USE-use" class="headerlink" title="2，USE - #use"></a>2，USE - #use</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">USE db=identifier       #use</span><br></pre></td></tr></table></figure>
+<p>这个语句表示使用某一个数据库，USE后面需要使用一个数据库名称，当前语句的实现在<code>org.apache.spark.sql.execution.SparkSqlAstBuilder</code>类中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Create a [[SetDatabaseCommand]] logical plan.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">override def <span class="title">visitUse</span><span class="params">(ctx: UseContext)</span>: LogicalPlan </span>= withOrigin(ctx) &#123;</span><br><span class="line">  SetDatabaseCommand(ctx.db.getText)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当执行use语句时候，其实际执行过程是获取Use上限文环境中变量<code>db</code>的值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Command for setting the current database.</span></span><br><span class="line"><span class="comment"> * &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment"> *   USE database_name;</span></span><br><span class="line"><span class="comment"> * &#125;&#125;&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">case</span> class <span class="title">SetDatabaseCommand</span><span class="params">(databaseName: String)</span> extends RunnableCommand </span>&#123;</span><br><span class="line">  <span class="function">override def <span class="title">run</span><span class="params">(sparkSession: SparkSession)</span>: Seq[Row] </span>= &#123;</span><br><span class="line">    sparkSession.sessionState.catalog.setCurrentDatabase(databaseName)</span><br><span class="line">    Seq.empty[Row]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当前对象的功能是调整catalog中的当前表信息，<code>RunnableCommand</code>是<code>Command</code>的子trait，其为一个<code>LogicalPlan</code>类型的对象，并重新实现了其输出方法和children方法，具体代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">trait Command extends LogicalPlan &#123;</span><br><span class="line">  override def output: Seq[Attribute] = Seq.empty</span><br><span class="line">  override def children: Seq[LogicalPlan] = Seq.empty</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3，创建数据库的语句-createDatabase"><a href="#3，创建数据库的语句-createDatabase" class="headerlink" title="3，创建数据库的语句 #createDatabase"></a>3，创建数据库的语句 #createDatabase</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">CREATE <span class="title">DATABASE</span> <span class="params">(IF NOT EXISTS)</span>? identifier</span></span><br><span class="line"><span class="function">   <span class="params">(COMMENT comment=STRING)</span>? locationSpec?</span></span><br><span class="line"><span class="function">   <span class="params">(WITH DBPROPERTIES tablePropertyList)</span>?</span></span><br></pre></td></tr></table></figure>
+<p>其中<code>IF NOT EXISTS</code> 语句， <code>COMMENT</code>语句， <code>locationSpec</code>，<code>with</code> 均为可选语句。 identifier表示库名称，locationSpec表示数据库文件位置，tablePropertyList表示数据库的扩展参数。<br>当前语句的实现在<code>org.apache.spark.sql.execution.SparkSqlAstBuilder</code>类中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Create a [[CreateDatabaseCommand]] command.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * For example:</span></span><br><span class="line"><span class="comment"> * &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment"> *   CREATE DATABASE [IF NOT EXISTS] database_name [COMMENT database_comment]</span></span><br><span class="line"><span class="comment"> *    [LOCATION path] [WITH DBPROPERTIES (key1=val1, key2=val2, ...)]</span></span><br><span class="line"><span class="comment"> * &#125;&#125;&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">override def <span class="title">visitCreateDatabase</span><span class="params">(ctx: CreateDatabaseContext)</span>: LogicalPlan </span>= withOrigin(ctx) &#123;</span><br><span class="line">  CreateDatabaseCommand(</span><br><span class="line">    ctx.identifier.getText,</span><br><span class="line">    ctx.EXISTS != <span class="keyword">null</span>,</span><br><span class="line">    Option(ctx.locationSpec).map(visitLocationSpec),</span><br><span class="line">    Option(ctx.comment).map(string),</span><br><span class="line">    Option(ctx.tablePropertyList).map(visitPropertyKeyValues).getOrElse(Map.empty))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>建表操作需要创建<code>CreateDatabaseCommand</code>,其实现<code>RunnableCommand</code>trait</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * A command for users to create a new database.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * It will issue an error message when the database with the same name already exists,</span></span><br><span class="line"><span class="comment"> * unless 'ifNotExists' is true.</span></span><br><span class="line"><span class="comment"> * The syntax of using this command in SQL is:</span></span><br><span class="line"><span class="comment"> * &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment"> *   CREATE (DATABASE|SCHEMA) [IF NOT EXISTS] database_name</span></span><br><span class="line"><span class="comment"> *     [COMMENT database_comment]</span></span><br><span class="line"><span class="comment"> *     [LOCATION database_directory]</span></span><br><span class="line"><span class="comment"> *     [WITH DBPROPERTIES (property_name=property_value, ...)];</span></span><br><span class="line"><span class="comment"> * &#125;&#125;&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">case</span> class <span class="title">CreateDatabaseCommand</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    databaseName: String,</span></span></span><br><span class="line"><span class="function"><span class="params">    ifNotExists: Boolean,</span></span></span><br><span class="line"><span class="function"><span class="params">    path: Option[String],</span></span></span><br><span class="line"><span class="function"><span class="params">    comment: Option[String],</span></span></span><br><span class="line"><span class="function"><span class="params">    props: Map[String, String])</span></span></span><br><span class="line"><span class="function">  extends RunnableCommand </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function">override def <span class="title">run</span><span class="params">(sparkSession: SparkSession)</span>: Seq[Row] </span>= &#123;</span><br><span class="line">    val catalog = sparkSession.sessionState.catalog</span><br><span class="line">    catalog.createDatabase(</span><br><span class="line">      CatalogDatabase(</span><br><span class="line">        databaseName,</span><br><span class="line">        comment.getOrElse(<span class="string">""</span>),</span><br><span class="line">        path.map(CatalogUtils.stringToURI(_)).getOrElse(catalog.getDefaultDBPath(databaseName)),</span><br><span class="line">        props),</span><br><span class="line">      ifNotExists)</span><br><span class="line">    Seq.empty[Row]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>建库语句首先构造一个<code>CatalogDatabase</code>对象，然后根据当前Catalog实例化的<code>ExternalCatalog</code>创建外部库。<br>目前的主要实现有Hive和Memory两种。</p>
+<h3 id="4，修改库属性-setDatabaseProperties"><a href="#4，修改库属性-setDatabaseProperties" class="headerlink" title="4，修改库属性 #setDatabaseProperties"></a>4，修改库属性 #setDatabaseProperties</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER DATABASE identifier SET DBPROPERTIES tablePropertyList     #setDatabaseProperties</span><br></pre></td></tr></table></figure>
+<p>identifier库示数据库名称，tablePropertyList表示相关参数信息，其为一个K/V集合</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Create an [[AlterDatabasePropertiesCommand]] command.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * For example:</span></span><br><span class="line"><span class="comment"> * &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment"> *   ALTER (DATABASE|SCHEMA) database SET DBPROPERTIES (property_name=property_value, ...);</span></span><br><span class="line"><span class="comment"> * &#125;&#125;&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">override def <span class="title">visitSetDatabaseProperties</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    ctx: SetDatabasePropertiesContext)</span>: LogicalPlan </span>= withOrigin(ctx) &#123;</span><br><span class="line">  AlterDatabasePropertiesCommand(</span><br><span class="line">    ctx.identifier.getText,</span><br><span class="line">    visitPropertyKeyValues(ctx.tablePropertyList))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">case</span> class <span class="title">AlterDatabasePropertiesCommand</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    databaseName: String,</span></span></span><br><span class="line"><span class="function"><span class="params">    props: Map[String, String])</span></span></span><br><span class="line"><span class="function">  extends RunnableCommand </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function">override def <span class="title">run</span><span class="params">(sparkSession: SparkSession)</span>: Seq[Row] </span>= &#123;</span><br><span class="line">    val catalog = sparkSession.sessionState.catalog</span><br><span class="line">    val db: CatalogDatabase = catalog.getDatabaseMetadata(databaseName)</span><br><span class="line">    catalog.alterDatabase(db.copy(properties = db.properties ++ props))</span><br><span class="line"></span><br><span class="line">    Seq.empty[Row]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改语句需要创建<code>AlterDatabasePropertiesCommand</code>对象，该对象的run方法首先获取Catalog实例，通过数据库名称查询当前数据库元数据信息，随后更新当前扩展参数集合，cppy返回一个<code>CatalogDatabase</code>实例，最后修改当前实例</p>
+<h3 id="5，删除数据库-dropDatabase"><a href="#5，删除数据库-dropDatabase" class="headerlink" title="5，删除数据库 #dropDatabase"></a>5，删除数据库 #dropDatabase</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">DROP <span class="title">DATABASE</span> <span class="params">(IF EXISTS)</span>? <span class="title">identifier</span> <span class="params">(RESTRICT | CASCADE)</span>?      #dropDatabase</span></span><br></pre></td></tr></table></figure>
+<p>删除语句定义identifier表示数据库名称</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Create a [[DropDatabaseCommand]] command.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * For example:</span></span><br><span class="line"><span class="comment"> * &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment"> *   DROP (DATABASE|SCHEMA) [IF EXISTS] database [RESTRICT|CASCADE];</span></span><br><span class="line"><span class="comment"> * &#125;&#125;&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">override def <span class="title">visitDropDatabase</span><span class="params">(ctx: DropDatabaseContext)</span>: LogicalPlan </span>= withOrigin(ctx) &#123;</span><br><span class="line">  DropDatabaseCommand(ctx.identifier.getText, ctx.EXISTS != <span class="keyword">null</span>, ctx.CASCADE != <span class="keyword">null</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>drop语句的原理同创建和删除类似，<code>DropDatabaseCommand</code>不再赘述。</p>
+<h3 id="6，建表语句-createTable"><a href="#6，建表语句-createTable" class="headerlink" title="6，建表语句 #createTable"></a>6，建表语句 #createTable</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">createTableHeader (<span class="string">'('</span> colTypeList <span class="string">')'</span>)? tableProvider</span><br><span class="line">    ((OPTIONS options=tablePropertyList) |</span><br><span class="line">    (PARTITIONED BY partitionColumnNames=identifierList) |</span><br><span class="line">    bucketSpec |</span><br><span class="line">    locationSpec |</span><br><span class="line">    (COMMENT comment=STRING) |</span><br><span class="line">    (TBLPROPERTIES tableProps=tablePropertyList))*</span><br><span class="line">    (AS? query)?                                                   #createTable</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">createTableHeader</span><br><span class="line">    : CREATE TEMPORARY? EXTERNAL? TABLE (IF NOT EXISTS)? tableIdentifier</span><br><span class="line">    ;</span><br><span class="line">tableIdentifier</span><br><span class="line">    : (db=identifier <span class="string">'.'</span>)? table=identifier</span><br><span class="line">    ;</span><br></pre></td></tr></table></figure>
+<p>createTableHeader 可以创建零时表和外部表，其中tableIdentifier表示表信息，其中表信息的创建规则为<code>db.tablename</code>。<br><code>colTypeList</code>表示当前表的列信息，其语法定义如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">colTypeList</span><br><span class="line">    : colType (<span class="string">','</span> colType)*</span><br><span class="line">    ;</span><br></pre></td></tr></table></figure>
+<p><code>colType</code>表是列类型，其构成为一个字符串和其数据类型，数据类型包括基本数据类型和复合数据类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">colType</span><br><span class="line">    : <span class="function">identifier <span class="title">dataType</span> <span class="params">(COMMENT STRING)</span>?</span></span><br><span class="line"><span class="function">    </span>;</span><br><span class="line"></span><br><span class="line">dataType</span><br><span class="line">    : complex=ARRAY '&lt;' dataType '&gt;'                            #complexDataType</span><br><span class="line">    | complex=MAP '&lt;' dataType ',' dataType '&gt;'                 #complexDataType</span><br><span class="line">    | complex=STRUCT ('&lt;' complexColTypeList? '&gt;' | NEQ)        #complexDataType</span><br><span class="line">    | identifier ('(' INTEGER_VALUE (',' INTEGER_VALUE)* ')')?  #primitiveDataType</span><br><span class="line">    ;</span><br></pre></td></tr></table></figure>
+
+<p><code>tableProvider</code>需要指定数据存储类型，如Hive或者Memory。options表示表属性，分区需要指定分区集合名称，bucketSpec表示指定？？？？？？？？？，locationSpec表示指定表路径，tableProps表示表的扩展属性，as和query语句可选，表示可以根据查询结果集进行建表操作。</p>
+<p>源代码分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Create a table, returning a [[CreateTable]] logical plan.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Expected format:</span></span><br><span class="line"><span class="comment"> * &#123;&#123;&#123;</span></span><br><span class="line"><span class="comment"> *   CREATE [TEMPORARY] TABLE [IF NOT EXISTS] [db_name.]table_name</span></span><br><span class="line"><span class="comment"> *   USING table_provider</span></span><br><span class="line"><span class="comment"> *   create_table_clauses</span></span><br><span class="line"><span class="comment"> *   [[AS] select_statement];</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *   create_table_clauses (order insensitive):</span></span><br><span class="line"><span class="comment"> *     [OPTIONS table_property_list]</span></span><br><span class="line"><span class="comment"> *     [PARTITIONED BY (col_name, col_name, ...)]</span></span><br><span class="line"><span class="comment"> *     [CLUSTERED BY (col_name, col_name, ...)</span></span><br><span class="line"><span class="comment"> *       [SORTED BY (col_name [ASC|DESC], ...)]</span></span><br><span class="line"><span class="comment"> *       INTO num_buckets BUCKETS</span></span><br><span class="line"><span class="comment"> *     ]</span></span><br><span class="line"><span class="comment"> *     [LOCATION path]</span></span><br><span class="line"><span class="comment"> *     [COMMENT table_comment]</span></span><br><span class="line"><span class="comment"> *     [TBLPROPERTIES (property_name=property_value, ...)]</span></span><br><span class="line"><span class="comment"> * &#125;&#125;&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">override def <span class="title">visitCreateTable</span><span class="params">(ctx: CreateTableContext)</span>: LogicalPlan </span>= withOrigin(ctx) &#123;</span><br><span class="line">  val (table, temp, ifNotExists, external) = visitCreateTableHeader(ctx.createTableHeader)</span><br><span class="line">  <span class="keyword">if</span> (external) &#123;</span><br><span class="line">    operationNotAllowed(<span class="string">"CREATE EXTERNAL TABLE ... USING"</span>, ctx)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  checkDuplicateClauses(ctx.TBLPROPERTIES, <span class="string">"TBLPROPERTIES"</span>, ctx)</span><br><span class="line">  checkDuplicateClauses(ctx.OPTIONS, <span class="string">"OPTIONS"</span>, ctx)</span><br><span class="line">  checkDuplicateClauses(ctx.PARTITIONED, <span class="string">"PARTITIONED BY"</span>, ctx)</span><br><span class="line">  checkDuplicateClauses(ctx.COMMENT, <span class="string">"COMMENT"</span>, ctx)</span><br><span class="line">  checkDuplicateClauses(ctx.bucketSpec(), <span class="string">"CLUSTERED BY"</span>, ctx)</span><br><span class="line">  checkDuplicateClauses(ctx.locationSpec, <span class="string">"LOCATION"</span>, ctx)</span><br><span class="line"></span><br><span class="line">  val options = Option(ctx.options).map(visitPropertyKeyValues).getOrElse(Map.empty)</span><br><span class="line">  val provider = ctx.tableProvider.qualifiedName.getText</span><br><span class="line">  val schema = Option(ctx.colTypeList()).map(createSchema)</span><br><span class="line">  val partitionColumnNames =</span><br><span class="line">    Option(ctx.partitionColumnNames)</span><br><span class="line">      .map(visitIdentifierList(_).toArray)</span><br><span class="line">      .getOrElse(Array.empty[String])</span><br><span class="line">  val properties = Option(ctx.tableProps).map(visitPropertyKeyValues).getOrElse(Map.empty)</span><br><span class="line">  val bucketSpec = ctx.bucketSpec().asScala.headOption.map(visitBucketSpec)</span><br><span class="line"></span><br><span class="line">  val location = ctx.locationSpec.asScala.headOption.map(visitLocationSpec)</span><br><span class="line">  val storage = DataSource.buildStorageFormatFromOptions(options)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (location.isDefined &amp;&amp; storage.locationUri.isDefined) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> ParseException(</span><br><span class="line">      <span class="string">"LOCATION and 'path' in OPTIONS are both used to indicate the custom table path, you can only specify one of them."</span>, ctx)</span><br><span class="line">  &#125;</span><br><span class="line">  val customLocation = storage.locationUri.orElse(location.map(CatalogUtils.stringToURI))</span><br><span class="line"></span><br><span class="line">  val tableType = <span class="keyword">if</span> (customLocation.isDefined) &#123;</span><br><span class="line">    CatalogTableType.EXTERNAL</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    CatalogTableType.MANAGED</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  val tableDesc = CatalogTable(</span><br><span class="line">    identifier = table,</span><br><span class="line">    tableType = tableType,</span><br><span class="line">    storage = storage.copy(locationUri = customLocation),</span><br><span class="line">    schema = schema.getOrElse(<span class="keyword">new</span> StructType),</span><br><span class="line">    provider = Some(provider),</span><br><span class="line">    partitionColumnNames = partitionColumnNames,</span><br><span class="line">    bucketSpec = bucketSpec,</span><br><span class="line">    properties = properties,</span><br><span class="line">    comment = Option(ctx.comment).map(string))</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Determine the storage mode.</span></span><br><span class="line">  val mode = <span class="keyword">if</span> (ifNotExists) SaveMode.Ignore <span class="keyword">else</span> SaveMode.ErrorIfExists</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (ctx.query != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">// Get the backing query.</span></span><br><span class="line">    val query = plan(ctx.query)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (temp) &#123;</span><br><span class="line">      operationNotAllowed(<span class="string">"CREATE TEMPORARY TABLE ... USING ... AS query"</span>, ctx)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Don't allow explicit specification of schema for CTAS</span></span><br><span class="line">    <span class="keyword">if</span> (schema.nonEmpty) &#123;</span><br><span class="line">      operationNotAllowed(</span><br><span class="line">        <span class="string">"Schema may not be specified in a Create Table As Select (CTAS) statement"</span>,</span><br><span class="line">        ctx)</span><br><span class="line">    &#125;</span><br><span class="line">    CreateTable(tableDesc, mode, Some(query))</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (temp) &#123;</span><br><span class="line">      <span class="keyword">if</span> (ifNotExists) &#123;</span><br><span class="line">        operationNotAllowed(<span class="string">"CREATE TEMPORARY TABLE IF NOT EXISTS"</span>, ctx)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      logWarning(s<span class="string">"CREATE TEMPORARY TABLE ... USING ... is deprecated, please use "</span> +</span><br><span class="line">        <span class="string">"CREATE TEMPORARY VIEW ... USING ... instead"</span>)</span><br><span class="line">      <span class="comment">// Unlike CREATE TEMPORARY VIEW USING, CREATE TEMPORARY TABLE USING does not support</span></span><br><span class="line">      <span class="comment">// IF NOT EXISTS. Users are not allowed to replace the existing temp table.</span></span><br><span class="line">      CreateTempViewUsing(table, schema, replace = <span class="keyword">false</span>, global = <span class="keyword">false</span>, provider, options)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      CreateTable(tableDesc, mode, None)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>创建<code>TableHeader</code>对象<code>type TableHeader = (TableIdentifier, Boolean, Boolean, Boolean)</code></li>
+<li>判断是否为外部表，暂时不支持创建外部表</li>
+<li>获取options，provider，表schema（列信息），分区属性，表扩展属性，bucket属性，表位置信息，表存储格式信息等</li>
+<li>如果建表语句同时指定了location和path，则抛出异常</li>
+<li>判断客户端是否指定了location信息，如果定义了则表类型是<code>EXTERNAL</code>类型，否则为<code>MANAGED</code>类型</li>
+<li>构造表描述对象<code>CatalogTable</code>,并选择存储模式，如：表存储在是抛异常还是忽略</li>
+<li>判断是否根据查询结果进行建表</li>
+<li>否则判断是否创建临时表，如果不是创建临时表则直接调用建表操作</li>
+</ol>
+<h3 id="7，建Hive表语句-createHiveTable"><a href="#7，建Hive表语句-createHiveTable" class="headerlink" title="7，建Hive表语句 #createHiveTable"></a>7，建Hive表语句 #createHiveTable</h3><p>参考6</p>
+<h3 id="8，-createTableLike"><a href="#8，-createTableLike" class="headerlink" title="8， #createTableLike"></a>8， #createTableLike</h3><p>==</p>
+<h3 id="9，-analyze"><a href="#9，-analyze" class="headerlink" title="9， #analyze"></a>9， #analyze</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ANALYZE TABLE tableIdentifier partitionSpec? COMPUTE STATISTICS</span><br><span class="line">        (identifier | FOR COLUMNS identifierSeq)?                      #analyze</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-添加列信息-addTableColumns"><a href="#10-添加列信息-addTableColumns" class="headerlink" title="10, 添加列信息 #addTableColumns"></a>10, 添加列信息 #addTableColumns</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE tableIdentifier</span><br><span class="line">        ADD COLUMNS '(' columns=colTypeList ')' #addTableColumns</span><br></pre></td></tr></table></figure>
+<p>tableIdentifier表示表信息，columns表示需要增加的列信息</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">override def <span class="title">visitAddTableColumns</span><span class="params">(ctx: AddTableColumnsContext)</span>: LogicalPlan </span>= withOrigin(ctx) &#123;</span><br><span class="line">  AlterTableAddColumnsCommand(</span><br><span class="line">    visitTableIdentifier(ctx.tableIdentifier),</span><br><span class="line">    visitColTypeList(ctx.columns)</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>AlterTableAddColumnsCommand</code>对象也是一个<code>Command</code>的实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">case</span> class <span class="title">AlterTableAddColumnsCommand</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    table: TableIdentifier,</span></span></span><br><span class="line"><span class="function"><span class="params">    colsToAdd: Seq[StructField])</span> extends RunnableCommand </span>&#123;</span><br><span class="line">  <span class="function">override def <span class="title">run</span><span class="params">(sparkSession: SparkSession)</span>: Seq[Row] </span>= &#123;</span><br><span class="line">    val catalog = sparkSession.sessionState.catalog</span><br><span class="line">    val catalogTable = verifyAlterTableAddColumn(sparkSession.sessionState.conf, catalog, table)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      sparkSession.catalog.uncacheTable(table.quotedString)</span><br><span class="line">    &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">      <span class="function"><span class="keyword">case</span> <span class="title">NonFatal</span><span class="params">(e)</span> </span>=&gt;</span><br><span class="line">        log.warn(s<span class="string">"Exception when attempting to uncache table $&#123;table.quotedString&#125;"</span>, e)</span><br><span class="line">    &#125;</span><br><span class="line">    catalog.refreshTable(table)</span><br><span class="line"></span><br><span class="line">    SchemaUtils.checkColumnNameDuplication(</span><br><span class="line">      (colsToAdd ++ catalogTable.schema).map(_.name),</span><br><span class="line">      <span class="string">"in the table definition of "</span> + table.identifier,</span><br><span class="line">      conf.caseSensitiveAnalysis)</span><br><span class="line">    DDLUtils.checkDataColNames(catalogTable, colsToAdd.map(_.name))</span><br><span class="line"></span><br><span class="line">    catalog.alterTableDataSchema(table, StructType(catalogTable.dataSchema ++ colsToAdd))</span><br><span class="line">    Seq.empty[Row]</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * ALTER TABLE ADD COLUMNS command does not support temporary view/table,</span></span><br><span class="line"><span class="comment">   * view, or datasource table with text, orc formats or external provider.</span></span><br><span class="line"><span class="comment">   * For datasource table, it currently only supports parquet, json, csv.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> def <span class="title">verifyAlterTableAddColumn</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      conf: SQLConf,</span></span></span><br><span class="line"><span class="function"><span class="params">      catalog: SessionCatalog,</span></span></span><br><span class="line"><span class="function"><span class="params">      table: TableIdentifier)</span>: CatalogTable </span>= &#123;</span><br><span class="line">    val catalogTable = catalog.getTempViewOrPermanentTableMetadata(table)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (catalogTable.tableType == CatalogTableType.VIEW) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> AnalysisException(</span><br><span class="line">        s<span class="string">""</span><span class="string">"</span></span><br><span class="line"><span class="string">          |ALTER ADD COLUMNS does not support views.</span></span><br><span class="line"><span class="string">          |You must drop and re-create the views for adding the new columns. Views: $table</span></span><br><span class="line"><span class="string">         "</span><span class="string">""</span>.stripMargin)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (DDLUtils.isDatasourceTable(catalogTable)) &#123;</span><br><span class="line">      DataSource.lookupDataSource(catalogTable.provider.get, conf).newInstance() match &#123;</span><br><span class="line">        <span class="comment">// For datasource table, this command can only support the following File format.</span></span><br><span class="line">        <span class="comment">// TextFileFormat only default to one column "value"</span></span><br><span class="line">        <span class="comment">// Hive type is already considered as hive serde table, so the logic will not</span></span><br><span class="line">        <span class="comment">// come in here.</span></span><br><span class="line">        <span class="keyword">case</span> _: JsonFileFormat | _: CSVFileFormat | _: ParquetFileFormat =&gt;</span><br><span class="line">        <span class="keyword">case</span> s <span class="keyword">if</span> s.getClass.getCanonicalName.endsWith(<span class="string">"OrcFileFormat"</span>) =&gt;</span><br><span class="line">        <span class="keyword">case</span> s =&gt;</span><br><span class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> AnalysisException(</span><br><span class="line">          s<span class="string">""</span><span class="string">"</span></span><br><span class="line"><span class="string">           |ALTER ADD COLUMNS does not support datasource table with type $s.</span></span><br><span class="line"><span class="string">           |You must drop and re-create the table for adding the new columns. Tables: $table</span></span><br><span class="line"><span class="string">           "</span><span class="string">""</span>.stripMargin)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    catalogTable</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>首先验证当前增加列的表信息，其中会判断是否为数据源表，当前增加列操作不支持临时表或者视图</p>
+</li>
+<li><p>在内存中删除指定的表信息，如果没有指定数据库名称则作用域为当前库</p>
+</li>
+<li><p>更新内存中表的缓存项</p>
+</li>
+<li><p>检查需要增加的列名称是不是重复的</p>
+</li>
+<li><p>修改表结构，具体的修改需要适配<code>ExternalCatalog</code>实现</p>
+</li>
+</ol>
+<h3 id="11-修改表名称-renameTable"><a href="#11-修改表名称-renameTable" class="headerlink" title="11, 修改表名称 #renameTable"></a>11, 修改表名称 #renameTable</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ALTER (TABLE | VIEW) from=tableIdentifier</span><br><span class="line">        RENAME TO to=tableIdentifier                                   #renameTable</span><br></pre></td></tr></table></figure>
+<p>from表示原始表名称，to表示修改后的表名称</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">override def <span class="title">visitRenameTable</span><span class="params">(ctx: RenameTableContext)</span>: LogicalPlan </span>= withOrigin(ctx) &#123;</span><br><span class="line">  AlterTableRenameCommand(</span><br><span class="line">    visitTableIdentifier(ctx.from),</span><br><span class="line">    visitTableIdentifier(ctx.to),</span><br><span class="line">    ctx.VIEW != <span class="keyword">null</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>   <code>AlterTableRenameCommand</code>也是一个<code>Command</code>对象的实现，具体代码如下所示：<br>   <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">case</span> class <span class="title">AlterTableRenameCommand</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    oldName: TableIdentifier,</span></span></span><br><span class="line"><span class="function"><span class="params">    newName: TableIdentifier,</span></span></span><br><span class="line"><span class="function"><span class="params">    isView: Boolean)</span></span></span><br><span class="line"><span class="function">  extends RunnableCommand </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function">override def <span class="title">run</span><span class="params">(sparkSession: SparkSession)</span>: Seq[Row] </span>= &#123;</span><br><span class="line">    val catalog = sparkSession.sessionState.catalog</span><br><span class="line">    <span class="comment">// If this is a temp view, just rename the view.</span></span><br><span class="line">    <span class="comment">// Otherwise, if this is a real table, we also need to uncache and invalidate the table.</span></span><br><span class="line">    <span class="keyword">if</span> (catalog.isTemporaryTable(oldName)) &#123;</span><br><span class="line">      catalog.renameTable(oldName, newName)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      val table = catalog.getTableMetadata(oldName)</span><br><span class="line">      DDLUtils.verifyAlterTableType(catalog, table, isView)</span><br><span class="line">      <span class="comment">// If an exception is thrown here we can just assume the table is uncached;</span></span><br><span class="line">      <span class="comment">// this can happen with Hive tables when the underlying catalog is in-memory.</span></span><br><span class="line">      val wasCached = Try(sparkSession.catalog.isCached(oldName.unquotedString)).getOrElse(<span class="keyword">false</span>)</span><br><span class="line">      <span class="keyword">if</span> (wasCached) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          sparkSession.catalog.uncacheTable(oldName.unquotedString)</span><br><span class="line">        &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">          <span class="function"><span class="keyword">case</span> <span class="title">NonFatal</span><span class="params">(e)</span> </span>=&gt; log.warn(e.toString, e)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// Invalidate the table last, otherwise uncaching the table would load the logical plan</span></span><br><span class="line">      <span class="comment">// back into the hive metastore cache</span></span><br><span class="line">      catalog.refreshTable(oldName)</span><br><span class="line">      catalog.renameTable(oldName, newName)</span><br><span class="line">      <span class="keyword">if</span> (wasCached) &#123;</span><br><span class="line">        sparkSession.catalog.cacheTable(newName.unquotedString)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    Seq.empty[Row]</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<ol>
+<li>如果当前表是临时视图，则直接修改视图名称；如果是一张实体表则需要和修改列信息操作样进行表验证和uncache操作。</li>
+<li><code>SessionCatalog</code>中获取要被修改表的元信息，并且校验当前表的操作命令是否合法，如修改Table的时候是否使用了 alter table，而非只用alter view，反之亦然。</li>
+<li>判断当前表信息是否已经在当前Catalog中缓存，如果缓存则首先从缓存中移除</li>
+</ol>
+<h3 id="12-添加表分区-addTablePartition"><a href="#12-添加表分区-addTablePartition" class="headerlink" title="12, 添加表分区 #addTablePartition"></a>12, 添加表分区 #addTablePartition</h3><p>增加表分区也是一个<code>Command</code>的子类型，<code>Spark-2.3.1</code>暂时不支撑对视图增加表分区，表分区概念和底层的物理表有很大关系。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">override def <span class="title">visitAddTablePartition</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      ctx: AddTablePartitionContext)</span>: LogicalPlan </span>= withOrigin(ctx) &#123;</span><br><span class="line">    <span class="keyword">if</span> (ctx.VIEW != <span class="keyword">null</span>) &#123;</span><br><span class="line">      operationNotAllowed(<span class="string">"ALTER VIEW ... ADD PARTITION"</span>, ctx)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Create partition spec to location mapping.</span></span><br><span class="line">    val specsAndLocs = <span class="keyword">if</span> (ctx.partitionSpec.isEmpty) &#123;</span><br><span class="line">      ctx.partitionSpecLocation.asScala.map &#123;</span><br><span class="line">        splCtx =&gt;</span><br><span class="line">          val spec = visitNonOptionalPartitionSpec(splCtx.partitionSpec)</span><br><span class="line">          val location = Option(splCtx.locationSpec).map(visitLocationSpec)</span><br><span class="line">          spec -&gt; location</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// Alter View: the location clauses are not allowed.</span></span><br><span class="line">      ctx.partitionSpec.asScala.map(visitNonOptionalPartitionSpec(_) -&gt; None)</span><br><span class="line">    &#125;</span><br><span class="line">    AlterTableAddPartitionCommand(</span><br><span class="line">      visitTableIdentifier(ctx.tableIdentifier),</span><br><span class="line">      specsAndLocs,</span><br><span class="line">      ctx.EXISTS != <span class="keyword">null</span>)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>PS：Spark其余SHOW/ALTER操作分析思路相同</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spark-SQL/" rel="tag"># Spark SQL</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag"># 源码分析</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/12/03/Spark%20SQL%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="prev" title="Spark SQL核心数据结构">
+      <i class="fa fa-chevron-left"></i> Spark SQL核心数据结构
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/12/11/%E6%9D%A8%E6%9F%B3%E5%8C%97%E9%87%8C/" rel="next" title="杨柳北里18号">
+      杨柳北里18号 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#singleStatement"><span class="nav-number">1.</span> <span class="nav-text">singleStatement</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#statement"><span class="nav-number">1.1.</span> <span class="nav-text">statement</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1，query-statementDefault"><span class="nav-number">1.1.1.</span> <span class="nav-text">1，query - #statementDefault</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2，USE-use"><span class="nav-number">1.1.2.</span> <span class="nav-text">2，USE - #use</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3，创建数据库的语句-createDatabase"><span class="nav-number">1.1.3.</span> <span class="nav-text">3，创建数据库的语句 #createDatabase</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4，修改库属性-setDatabaseProperties"><span class="nav-number">1.1.4.</span> <span class="nav-text">4，修改库属性 #setDatabaseProperties</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5，删除数据库-dropDatabase"><span class="nav-number">1.1.5.</span> <span class="nav-text">5，删除数据库 #dropDatabase</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6，建表语句-createTable"><span class="nav-number">1.1.6.</span> <span class="nav-text">6，建表语句 #createTable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7，建Hive表语句-createHiveTable"><span class="nav-number">1.1.7.</span> <span class="nav-text">7，建Hive表语句 #createHiveTable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8，-createTableLike"><span class="nav-number">1.1.8.</span> <span class="nav-text">8， #createTableLike</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9，-analyze"><span class="nav-number">1.1.9.</span> <span class="nav-text">9， #analyze</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-添加列信息-addTableColumns"><span class="nav-number">1.1.10.</span> <span class="nav-text">10, 添加列信息 #addTableColumns</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-修改表名称-renameTable"><span class="nav-number">1.1.11.</span> <span class="nav-text">11, 修改表名称 #renameTable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-添加表分区-addTablePartition"><span class="nav-number">1.1.12.</span> <span class="nav-text">12, 添加表分区 #addTablePartition</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="liyan"
+      src="/images/myphoto.jpg">
+  <p class="site-author-name" itemprop="name">liyan</p>
+  <div class="site-description" itemprop="description">我的世界不止计算机</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/tsface" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;tsface" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/mailto:hanily@msn.com" title="E-Mail → mailto:hanily@msn.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liyan</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

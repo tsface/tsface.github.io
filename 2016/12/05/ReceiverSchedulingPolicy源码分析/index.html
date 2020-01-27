@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="ReceiverSchedulingPolicy源码分析ReceiverSchedulingPolicy是为了解决Spark Streaming对Receiver的分布式均衡调度，ReceiverSchedulingPolicy对象有两个调度阶段，分别是global scheduling和local scheduling，两个阶段的调度算法不同。  全包名： org.apache.spark.st">
+<meta name="keywords" content="BigData,Spark Streaming,ReceiverSchedulingPolicy">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ReceiverSchedulingPolicy源码分析">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2016&#x2F;12&#x2F;05&#x2F;ReceiverSchedulingPolicy%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90&#x2F;index.html">
+<meta property="og:site_name" content="LIYAN BLOG">
+<meta property="og:description" content="ReceiverSchedulingPolicy源码分析ReceiverSchedulingPolicy是为了解决Spark Streaming对Receiver的分布式均衡调度，ReceiverSchedulingPolicy对象有两个调度阶段，分别是global scheduling和local scheduling，两个阶段的调度算法不同。  全包名： org.apache.spark.st">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-12-06T04:52:10.605Z">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2016/12/05/ReceiverSchedulingPolicy%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>ReceiverSchedulingPolicy源码分析 | LIYAN BLOG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LIYAN BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">生活,家庭,计算机</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/05/ReceiverSchedulingPolicy%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ReceiverSchedulingPolicy源码分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2016-12-05 00:00:00" itemprop="dateCreated datePublished" datetime="2016-12-05T00:00:00+08:00">2016-12-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-06 12:52:10" itemprop="dateModified" datetime="2019-12-06T12:52:10+08:00">2019-12-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="ReceiverSchedulingPolicy源码分析"><a href="#ReceiverSchedulingPolicy源码分析" class="headerlink" title="ReceiverSchedulingPolicy源码分析"></a>ReceiverSchedulingPolicy源码分析</h2><p><code>ReceiverSchedulingPolicy</code>是为了解决Spark Streaming对Receiver的分布式均衡调度，<code>ReceiverSchedulingPolicy</code>对象有两个调度阶段，分别是<code>global scheduling</code>和<code>local scheduling</code>，两个阶段的调度算法不同。</p>
+<blockquote>
+<p>全包名： <strong>org.apache.spark.streaming.scheduler.ReceiverSchedulingPolicy</strong></p>
+</blockquote>
+<h3 id="一、global-scheduling"><a href="#一、global-scheduling" class="headerlink" title="一、global scheduling"></a>一、global scheduling</h3><p>当<code>ReceiverTracker</code>正在启动，我们需要在同时调度运行所有的<code>Receiver</code>,<code>ReceiverTracker</code>将调用<code>ReceiverSchedulingPolicy</code>的<code>scheduleReceivers</code>方法。这个方法将尝试分布式、均衡的调度<code>Receiver</code>到相应的<code>Executor</code>上。<code>ReceiverTracker</code>将通过<code>scheduleReceivers</code>更新自己的<code>receiverTrackingInfoMap</code>。<br><code>ReceiverTrackingInfo.scheduledExecutors</code>为每一个<code>Receiver</code>设置一个包含调度位置的<code>Executor集合</code>。当<code>Receiver</code>启动的时候，<code>Receiver</code>将发送一个注册请求，<code>Driver</code>收到请求后会调用<code>ReceiverTracker.registerReceiver</code>方法。在<code>ReceiverTracker.registerReceiver</code>中，如果一个<code>Reveiver</code>的<code>Executor</code>位置信息已经设置，它将检查当前<code>reveiver</code>的调度位置是否包含在其对应的<code>Executor</code>中，如果不包含，则当前注册被拒绝。</p>
+<a id="more"></a>
+
+<hr>
+<h6 id="源代码分析"><a href="#源代码分析" class="headerlink" title="源代码分析"></a>源代码分析</h6><ul>
+<li><p>在 Streaming 程序首次启动时：</p>
+<ul>
+<li>收集所有 <code>InputDStream</code> 包含的所有 <code>Receiver</code> 实例 —— <code>receivers</code></li>
+<li>收集所有的 executor —— <code>executors</code> —— 作为候选目的地</li>
+<li>然后就调用 <code>ReceiverSchedulingPolicy.scheduleReceivers(receivers, executors)</code> 来计算每个 <code>Receiver</code> 的目的地 executor 列表</li>
+</ul>
+</li>
+<li><p>中间过程分析</p>
+<ol>
+<li>从传入参数上面将，<code>scheduleReceivers</code>接收到参数分别为<code>Receiver</code>和<code>Executor</code>的两个序列，<code>Executor</code>的字符表示类型是：<code>hostName:port (eg: machine1:50021)</code></li>
+<li>首先根据主机名称对<code>Executor</code>信息进行分组</li>
+<li>创建<code>Executor</code>地址数据结构，其大小等于需要启动的<code>Receiver</code>大小，然后创建<code>Executor</code>上可运行的主机个数映射(<code>numReceiversOnExecutor</code>)，并将value初始化为 <code>0</code></li>
+<li>遍历每个<code>Receiver</code>，获取并检查当前Receiver的<code>preferredLocation</code>，如果Executor列表中没有当前主机则暂时为空；如果当前<code>Receiver</code>中找到了运行的主机，则查询映射表<code>numReceiversOnExecutor</code>找到<code>Executor</code>中value最小的，将当前<code>Receiver</code>分配给它</li>
+<li>处理未分配到<code>Executor</code>的<code>Receiver</code></li>
+<li>处理空闲的<code>Executor</code>，如果当前<code>Executor</code>没有分配到<code>Receiver</code>，那么在已经分配的列表中找到<code>Executor</code>个数最少了，将当前<code>Executor</code>分配给对应的<code>Receiver</code>，以作备用。</li>
+<li>最后返回结果:<code>eg : Map(0 -&gt; ArrayBuffer(rtp03:2181, rtp04:2181), 1 -&gt; ArrayBuffer(rtp03:2191), 2 -&gt; ArrayBuffer(rtp03:2181), 3 -&gt; ArrayBuffer(rtp03:2191))</code></li>
+</ol>
+</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">scheduleReceivers</span></span>(</span><br><span class="line">      receivers: <span class="type">Seq</span>[<span class="type">Receiver</span>[_]], executors: <span class="type">Seq</span>[<span class="type">String</span>]): <span class="type">Map</span>[<span class="type">Int</span>, <span class="type">Seq</span>[<span class="type">String</span>]] = &#123;</span><br><span class="line">    <span class="keyword">if</span> (receivers.isEmpty) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="type">Map</span>.empty</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (executors.isEmpty) &#123;</span><br><span class="line">      <span class="keyword">return</span> receivers.map(_.streamId -&gt; <span class="type">Seq</span>.empty).toMap</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">/***所有的Executor主机名称***/</span></span><br><span class="line">    <span class="keyword">val</span> hostToExecutors = executors.groupBy(_.split(<span class="string">":"</span>)(<span class="number">0</span>))</span><br><span class="line">    <span class="keyword">val</span> scheduledExecutors = <span class="type">Array</span>.fill(receivers.length)(<span class="keyword">new</span> mutable.<span class="type">ArrayBuffer</span>[<span class="type">String</span>])</span><br><span class="line">    <span class="comment">/***可以被调度的Executor列表***/</span></span><br><span class="line">    <span class="keyword">val</span> numReceiversOnExecutor = mutable.<span class="type">HashMap</span>[<span class="type">String</span>, <span class="type">Int</span>]()</span><br><span class="line">    <span class="comment">// Set the initial value to 0</span></span><br><span class="line">    executors.foreach(e =&gt; numReceiversOnExecutor(e) = <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Firstly, we need to respect "preferredLocation". So if a receiver has "preferredLocation",</span></span><br><span class="line">    <span class="comment">// we need to make sure the "preferredLocation" is in the candidate scheduled executor list.</span></span><br><span class="line">    <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until receivers.length) &#123;</span><br><span class="line">      <span class="comment">// Note: preferredLocation is host but executors are host:port</span></span><br><span class="line">      receivers(i).preferredLocation.foreach &#123; host =&gt;</span><br><span class="line">        hostToExecutors.get(host) <span class="keyword">match</span> &#123;</span><br><span class="line">          <span class="keyword">case</span> <span class="type">Some</span>(executorsOnHost) =&gt;</span><br><span class="line">            <span class="comment">// preferredLocation is a known host. Select an executor that has the least receivers in</span></span><br><span class="line">            <span class="comment">// this host</span></span><br><span class="line">            <span class="keyword">val</span> leastScheduledExecutor =</span><br><span class="line">              executorsOnHost.minBy(executor =&gt; numReceiversOnExecutor(executor))</span><br><span class="line">            scheduledExecutors(i) += leastScheduledExecutor</span><br><span class="line">            numReceiversOnExecutor(leastScheduledExecutor) =</span><br><span class="line">              numReceiversOnExecutor(leastScheduledExecutor) + <span class="number">1</span></span><br><span class="line">          <span class="keyword">case</span> <span class="type">None</span> =&gt;</span><br><span class="line">            <span class="comment">// preferredLocation is an unknown host.</span></span><br><span class="line">            <span class="comment">// Note: There are two cases:</span></span><br><span class="line">            <span class="comment">// 1. This executor is not up. But it may be up later.</span></span><br><span class="line">            <span class="comment">// 2. This executor is dead, or it's not a host in the cluster.</span></span><br><span class="line">            <span class="comment">// Currently, simply add host to the scheduled executors.</span></span><br><span class="line">            scheduledExecutors(i) += host</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// For those receivers that don't have preferredLocation, make sure we assign at least one</span></span><br><span class="line">    <span class="comment">// executor to them.</span></span><br><span class="line">    <span class="keyword">for</span> (scheduledExecutorsForOneReceiver &lt;- scheduledExecutors.filter(_.isEmpty)) &#123;</span><br><span class="line">      <span class="comment">// Select the executor that has the least receivers</span></span><br><span class="line">      <span class="keyword">val</span> (leastScheduledExecutor, numReceivers) = numReceiversOnExecutor.minBy(_._2)</span><br><span class="line">      scheduledExecutorsForOneReceiver += leastScheduledExecutor</span><br><span class="line">      numReceiversOnExecutor(leastScheduledExecutor) = numReceivers + <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Assign idle executors to receivers that have less executors</span></span><br><span class="line">    <span class="keyword">val</span> idleExecutors = numReceiversOnExecutor.filter(_._2 == <span class="number">0</span>).map(_._1)</span><br><span class="line">    <span class="keyword">for</span> (executor &lt;- idleExecutors) &#123;</span><br><span class="line">      <span class="comment">// Assign an idle executor to the receiver that has least candidate executors.</span></span><br><span class="line">      <span class="keyword">val</span> leastScheduledExecutors = scheduledExecutors.minBy(_.size)</span><br><span class="line">      leastScheduledExecutors += executor</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    receivers.map(_.streamId).zip(scheduledExecutors).toMap</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="二、-local-scheduling"><a href="#二、-local-scheduling" class="headerlink" title="二、 local scheduling"></a>二、 local scheduling</h3><p>这个阶段的调度发生在<code>Receiver</code>重启的时候，<code>Receiver</code>重启一般是由于以下两种情况：</p>
+<ul>
+<li>当真实地址和调度地址不匹配的时候<code>Receiver</code>开始重启，从代码角度表述即<code>scheduleReceivers</code>给它的启动位置不对，<code>ReceiverTracker</code>会首先选择在调度列表中存活的<code>Executor</code>,使用这些<code>Executor</code>去运行<code>Receiver</code>作业</li>
+<li>如果<code>Receiver</code>重启时没有可以调度的<code>Executor</code>列表，或者调度列表中的<code>Executor</code>已经死亡，<code>ReceiverTracker</code>将会调用 <code>rescheduleReceiver</code>，假如这样的话，<code>ReceiverTracker</code>不应该将当前<code>Exexutor</code>设置为<code>ReceiverTrackingInfo.scheduledExecutors</code>的值，而应该清理掉之前启动阶段初始化运算的值。当前<code>receiver</code>正在注册, 我们可以知道这个阶段<code>Receiver</code>的调度是<code>local scheduling</code>，  <code>ReceiverTrackingInfo</code>再次调用<code>rescheduleReceiver</code>检查运行目的地是否匹配</li>
+</ul>
+<hr>
+<h6 id="源代码分析-1"><a href="#源代码分析-1" class="headerlink" title="源代码分析"></a>源代码分析</h6><ul>
+<li><p>在 Streaming 程序运行过程中，如果需要重启某个 <code>Receiver</code>：</p>
+<ul>
+<li>将首先看一看之前计算过的目的地 executor 还没有还 alive 的</li>
+<li>如果没有，就需要 <code>ReceiverSchedulingPolicy.rescheduleReceiver(receiver, ...)</code> 来重新计算这个 <code>Receiver</code> 的目的地 executor 列表</li>
+</ul>
+</li>
+<li><p>中间过程分析</p>
+<ol>
+<li>输入参数中有<code>receiverId</code>，表示需要重启的<code>Receiver</code>；<code>executors</code>表示需要支持<code>receiver</code>启动的<code>Executor</code>列表；输出参数是一个<code>Executor</code>序列集合</li>
+<li>首先会将<code>preferredLocation</code>添加到<code>Executor</code>列表中，主要是为了体现 ++用户指定优先++ 的策略</li>
+<li>遍历所有的<code>ReceiverTrackerInfo</code>,匹配其状态:<ul>
+<li>如果<code>Receiver</code>的状态是<code>SCHEDULED</code>则获取所有的<code>Executor</code>列表，设置每个<code>Executor</code>的权重全都相同</li>
+<li>如果<code>Receiver</code>的状态是<code>ACTIVE</code>，则直接获取正在运行的<code>Executor</code>，设置权重为 1</li>
+</ul>
+</li>
+<li>初始化权重信息后，按照<code>Executor</code>分组，并累加每一个<code>Executor</code>的权重信息，最后得到权重和<code>Executor</code>的映射信息(==++权重值越小，说明<code>Executor</code>上<code>Receiver</code>越少++==)，例如：(<code>Map(rtp03:2181 -&gt; 0.75, rtp02:2191 -&gt; 0.25)</code>)</li>
+<li>找出此时空闲的的<code>Executor</code>信息，如果存在空闲的，则直接将其添加到调度列表中</li>
+<li>如果没有空闲的，则按照权重大小由低到高排序，找出最小的权重值，然后使用<code>takeWhile</code>过滤目前最小权重的<code>Executor</code>,将其添加到调度列表中。</li>
+</ol>
+</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">rescheduleReceiver</span></span>(</span><br><span class="line">      receiverId: <span class="type">Int</span>,</span><br><span class="line">      preferredLocation: <span class="type">Option</span>[<span class="type">String</span>],</span><br><span class="line">      receiverTrackingInfoMap: <span class="type">Map</span>[<span class="type">Int</span>, <span class="type">ReceiverTrackingInfo</span>],</span><br><span class="line">      executors: <span class="type">Seq</span>[<span class="type">String</span>]): <span class="type">Seq</span>[<span class="type">String</span>] = &#123;</span><br><span class="line">    <span class="keyword">if</span> (executors.isEmpty) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="type">Seq</span>.empty</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Always try to schedule to the preferred locations</span></span><br><span class="line">    <span class="keyword">val</span> scheduledExecutors = mutable.<span class="type">Set</span>[<span class="type">String</span>]()</span><br><span class="line">    scheduledExecutors ++= preferredLocation</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> executorWeights = receiverTrackingInfoMap.values.flatMap &#123; receiverTrackingInfo =&gt;</span><br><span class="line">      receiverTrackingInfo.state <span class="keyword">match</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="type">ReceiverState</span>.<span class="type">INACTIVE</span> =&gt; <span class="type">Nil</span></span><br><span class="line">        <span class="keyword">case</span> <span class="type">ReceiverState</span>.<span class="type">SCHEDULED</span> =&gt;</span><br><span class="line">          <span class="keyword">val</span> scheduledExecutors = receiverTrackingInfo.scheduledExecutors.get</span><br><span class="line">          <span class="comment">// The probability that a scheduled receiver will run in an executor is</span></span><br><span class="line">          <span class="comment">// 1.0 / scheduledLocations.size</span></span><br><span class="line">          scheduledExecutors.map(location =&gt; location -&gt; (<span class="number">1.0</span> / scheduledExecutors.size))</span><br><span class="line">        <span class="keyword">case</span> <span class="type">ReceiverState</span>.<span class="type">ACTIVE</span> =&gt; <span class="type">Seq</span>(receiverTrackingInfo.runningExecutor.get -&gt; <span class="number">1.0</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;.groupBy(_._1).mapValues(_.map(_._2).sum) <span class="comment">// Sum weights for each executor</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> idleExecutors = executors.toSet -- executorWeights.keys</span><br><span class="line">    <span class="keyword">if</span> (idleExecutors.nonEmpty) &#123;</span><br><span class="line">      scheduledExecutors ++= idleExecutors</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// There is no idle executor. So select all executors that have the minimum weight.</span></span><br><span class="line">      <span class="keyword">val</span> sortedExecutors = executorWeights.toSeq.sortBy(_._2)</span><br><span class="line">      <span class="keyword">if</span> (sortedExecutors.nonEmpty) &#123;</span><br><span class="line">        <span class="keyword">val</span> minWeight = sortedExecutors(<span class="number">0</span>)._2</span><br><span class="line">        scheduledExecutors ++= sortedExecutors.takeWhile(_._2 == minWeight).map(_._1)</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// This should not happen since "executors" is not empty</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    scheduledExecutors.toSeq</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/BigData/" rel="tag"># BigData</a>
+              <a href="/tags/Spark-Streaming/" rel="tag"># Spark Streaming</a>
+              <a href="/tags/ReceiverSchedulingPolicy/" rel="tag"># ReceiverSchedulingPolicy</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2016/12/07/%E5%89%8D%E7%AB%AF%E8%A7%84%E8%8C%83%E7%BF%BB%E8%AF%91/" rel="next" title="前端规范">
+      前端规范 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ReceiverSchedulingPolicy源码分析"><span class="nav-number">1.</span> <span class="nav-text">ReceiverSchedulingPolicy源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一、global-scheduling"><span class="nav-number">1.1.</span> <span class="nav-text">一、global scheduling</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#源代码分析"><span class="nav-number">1.1.0.0.1.</span> <span class="nav-text">源代码分析</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、-local-scheduling"><span class="nav-number">1.2.</span> <span class="nav-text">二、 local scheduling</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#源代码分析-1"><span class="nav-number">1.2.0.0.1.</span> <span class="nav-text">源代码分析</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="liyan"
+      src="/images/myphoto.jpg">
+  <p class="site-author-name" itemprop="name">liyan</p>
+  <div class="site-description" itemprop="description">我的世界不止计算机</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/tsface" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;tsface" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/mailto:hanily@msn.com" title="E-Mail → mailto:hanily@msn.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liyan</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
