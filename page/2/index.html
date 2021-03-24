@@ -487,7 +487,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/streaming-kafka-source/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/scala-implicit/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/myphoto.jpg">
@@ -501,7 +501,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/2018/01/05/streaming-kafka-source/" class="post-title-link" itemprop="url">Structured Streaming Kafka Source 源码分析</a>
+            <a href="/2018/01/05/scala-implicit/" class="post-title-link" itemprop="url">Scala-implicit</a>
         </h1>
 
         <div class="post-meta">
@@ -518,7 +518,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-06 12:51:11" itemprop="dateModified" datetime="2019-12-06T12:51:11+08:00">2019-12-06</time>
+                <time title="Modified: 2019-12-06 12:50:45" itemprop="dateModified" datetime="2019-12-06T12:50:45+08:00">2019-12-06</time>
               </span>
 
           
@@ -532,15 +532,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="KafkaSourceProvider"><a href="#KafkaSourceProvider" class="headerlink" title="KafkaSourceProvider"></a>KafkaSourceProvider</h2><p>自定义<code>SourceProvider</code>可以向<code>Structured Streaming</code>注册自定义Source，其实现了<code>StreamSourceProvider</code>和 <code>DataSourceRegister</code>接口。需要重写以下三个方法：</p>
-<ul>
-<li>sourceSchema<br>获取数据源的schema信息，返回类型是<code>Tuple[_,_]</code>,其中的key代表数据源的别名，value表示数据源的schema</li>
-<li>createSource<br>创建一个<code>org.apache.spark.sql.execution.streaming.Source</code>接口的实现，表示数据源对象</li>
-<li>shortName<br>自定义的数据源名称，这个数据源名称会提供给用户的format方法设置数据源</li>
-</ul>
+          <h1 id="Scala-implicit"><a href="#Scala-implicit" class="headerlink" title="Scala-implicit"></a>Scala-implicit</h1><h2 id="一-、隐式转换函数"><a href="#一-、隐式转换函数" class="headerlink" title="一 、隐式转换函数"></a>一 、隐式转换函数</h2><p>所谓隐式转换函数(implicit conversion function)指的是以implicit关键字声明的带有单个参数的函数。<br>例如：<code>implicit def int2Fraction(n: Int) = Fraction(n,1)</code></p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2018/01/05/streaming-kafka-source/#more" rel="contents">
+              <a class="btn" href="/2018/01/05/scala-implicit/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
