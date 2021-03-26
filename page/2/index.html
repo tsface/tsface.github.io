@@ -168,6 +168,83 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/03/Spark%20SQL%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/12/03/Spark%20SQL%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="post-title-link" itemprop="url">Spark SQL核心数据结构</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-12-03 00:00:00" itemprop="dateCreated datePublished" datetime="2019-12-03T00:00:00+08:00">2019-12-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-11 15:00:30" itemprop="dateModified" datetime="2019-12-11T15:00:30+08:00">2019-12-11</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <ul>
+<li>InternalRow体系</li>
+<li>TreeNode体系</li>
+<li>Expression体系</li>
+</ul>
+<h2 id="InternalRow体系"><a href="#InternalRow体系" class="headerlink" title="InternalRow体系"></a>InternalRow体系</h2><p>InternalRow是表示一行行数据的类，物理算子树节点产生和转换的RDD类型即为<code>RDD[InternalRow]</code>。InternalRow作为一个抽象类，包含numFields和update等方法，整个InternalRow体系比较简单，具体实现不多，主要包括<code>BaseGenericInternalRow</code>、<code>UnsafeRow</code>、<code>JoinedRow</code></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/12/03/Spark%20SQL%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/02/2018%E8%AF%BB%E7%9A%84%E4%B9%A6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -304,94 +381,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/01/05/LogSegment/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/kafka_startup/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myphoto.jpg">
-      <meta itemprop="name" content="liyan">
-      <meta itemprop="description" content="我的世界不止计算机">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LIYAN BLOG">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/01/05/kafka_startup/" class="post-title-link" itemprop="url">kafka启动流程分析</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-01-05 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-05T00:00:00+08:00">2018-01-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-06 12:52:36" itemprop="dateModified" datetime="2019-12-06T12:52:36+08:00">2019-12-06</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="kafka启动流程分析"><a href="#kafka启动流程分析" class="headerlink" title="kafka启动流程分析"></a>kafka启动流程分析</h2><ol>
-<li>修改当前broker的状态为<code>Starting</code></li>
-<li>启动kafka内部调度器<code>KafkaScheduler</code></li>
-<li>初始化Zookeeper上的kafka基础目录</li>
-<li>创建并启动日志管理对象<code>LogManager</code></li>
-<li>启动通信服务<code>SocketServer</code></li>
-<li>创建<code>ReplicaManager</code>管理对象</li>
-<li>创建offset管理线程<code>OffsetManager</code></li>
-<li>创建<code>KafkaController</code></li>
-<li>启动请求处理线程，并修改broker的状态为<code>RunningAsBroker</code></li>
-<li>启动<code>replicaManager</code>服务</li>
-<li>启动<code>KafkaController</code>，进行<code>Controller</code>选举</li>
-<li>创建并启动<code>TopicConfigManager</code>对象</li>
-<li>创建并启动心跳服务<code>KafkaHealthcheck</code></li>
-<li>注册动态统计到JMX</li>
-<li>启动完成</li>
-</ol>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/01/05/kafka_startup/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -605,12 +594,12 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-count">37</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>

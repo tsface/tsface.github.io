@@ -168,6 +168,80 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/26/OAP%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/03/26/OAP%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/" class="post-title-link" itemprop="url">OAP源码分析-1</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-03-26 00:00:00 / Modified: 19:58:55" itemprop="dateCreated datePublished" datetime="2021-03-26T00:00:00+08:00">2021-03-26</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="OapRuntime"><a href="#OapRuntime" class="headerlink" title="OapRuntime"></a>OapRuntime</h1><p>OapRuntime 是一个trait，内部定义了一些列的运行时管理对象接口。包括：</p>
+<ul>
+<li>fiberSensor: <code>FiberSensor</code>运行在Driver端，记录了 <code>FiberCache</code>的信息，主要包括文件缓存的位置信息和统计信息。</li>
+<li>fiberCacheManager：管理<code>FiberCache</code>的容器，提供缓存的读取，更新，修改等操作，提供多介质的存储后端</li>
+<li>oapRpcManager：<code>OapRpcManager</code>基于Spark RPC框架定制的消息管理接口，该接口的实现也包括两部分，其中包括是在Driver端和Executor端。</li>
+<li>oapMetricsManager: <code>OapMetricsManager</code>主要管理OAP的Metrics信息</li>
+<li>dataFileMetaCacheManager</li>
+<li>stop</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/03/26/OAP%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-1/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/21/2021%E8%AE%BA%E6%96%87%E5%BD%92%E6%A1%A3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -449,83 +523,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/03/Spark%20SQL%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myphoto.jpg">
-      <meta itemprop="name" content="liyan">
-      <meta itemprop="description" content="我的世界不止计算机">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LIYAN BLOG">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/12/03/Spark%20SQL%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="post-title-link" itemprop="url">Spark SQL核心数据结构</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2019-12-03 00:00:00" itemprop="dateCreated datePublished" datetime="2019-12-03T00:00:00+08:00">2019-12-03</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-11 15:00:30" itemprop="dateModified" datetime="2019-12-11T15:00:30+08:00">2019-12-11</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <ul>
-<li>InternalRow体系</li>
-<li>TreeNode体系</li>
-<li>Expression体系</li>
-</ul>
-<h2 id="InternalRow体系"><a href="#InternalRow体系" class="headerlink" title="InternalRow体系"></a>InternalRow体系</h2><p>InternalRow是表示一行行数据的类，物理算子树节点产生和转换的RDD类型即为<code>RDD[InternalRow]</code>。InternalRow作为一个抽象类，包含numFields和update等方法，整个InternalRow体系比较简单，具体实现不多，主要包括<code>BaseGenericInternalRow</code>、<code>UnsafeRow</code>、<code>JoinedRow</code></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/12/03/Spark%20SQL%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -576,12 +573,12 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-count">37</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>

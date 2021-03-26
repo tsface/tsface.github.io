@@ -245,6 +245,94 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/kafka_startup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/01/05/kafka_startup/" class="post-title-link" itemprop="url">kafka启动流程分析</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-01-05 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-05T00:00:00+08:00">2018-01-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-06 12:52:36" itemprop="dateModified" datetime="2019-12-06T12:52:36+08:00">2019-12-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="kafka启动流程分析"><a href="#kafka启动流程分析" class="headerlink" title="kafka启动流程分析"></a>kafka启动流程分析</h2><ol>
+<li>修改当前broker的状态为<code>Starting</code></li>
+<li>启动kafka内部调度器<code>KafkaScheduler</code></li>
+<li>初始化Zookeeper上的kafka基础目录</li>
+<li>创建并启动日志管理对象<code>LogManager</code></li>
+<li>启动通信服务<code>SocketServer</code></li>
+<li>创建<code>ReplicaManager</code>管理对象</li>
+<li>创建offset管理线程<code>OffsetManager</code></li>
+<li>创建<code>KafkaController</code></li>
+<li>启动请求处理线程，并修改broker的状态为<code>RunningAsBroker</code></li>
+<li>启动<code>replicaManager</code>服务</li>
+<li>启动<code>KafkaController</code>，进行<code>Controller</code>选举</li>
+<li>创建并启动<code>TopicConfigManager</code>对象</li>
+<li>创建并启动心跳服务<code>KafkaHealthcheck</code></li>
+<li>注册动态统计到JMX</li>
+<li>启动完成</li>
+</ol>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/01/05/kafka_startup/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/15/Spark%E8%A7%86%E9%A2%91-2017/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -301,6 +389,78 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2017/02/15/Spark%E8%A7%86%E9%A2%91-2017/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/24/SparkStreaming-BackPressure/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2016/12/24/SparkStreaming-BackPressure/" class="post-title-link" itemprop="url">Spark Streamig backpressure 机制</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2016-12-24 00:00:00" itemprop="dateCreated datePublished" datetime="2016-12-24T00:00:00+08:00">2016-12-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-06 12:51:05" itemprop="dateModified" datetime="2019-12-06T12:51:05+08:00">2019-12-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Spark-Streamig-backpressure-机制"><a href="#Spark-Streamig-backpressure-机制" class="headerlink" title="Spark Streamig backpressure 机制"></a>Spark Streamig backpressure 机制</h1><h2 id="一、背景"><a href="#一、背景" class="headerlink" title="一、背景"></a>一、背景</h2><p>Spark Streaming实现流式处理的最基本原理就是周期性，持续的生成任务来处理数据。在这个过程有两个概念：任务生成周期(batch interval)和数据处理时间(batch processing time)。如果数据处理时间大于任务提交间隔,意味着数据的接收速率已经大于数据的处理速度了，如果数据的存储策略是内存(<code>MEMORY_ONLY</code>)，则会导致内存数据丢失，数据丢失；如果数据存储策略是内存和磁盘，则数据会溢写到磁盘，降低数据处理性能。<br>在1.5.x版本之前采取的是最简单的方式：即限流(<code>spark.streaming.receiver.maxRate</code>)，通过这个配置项减小数据接收的速率，防止数据处理太慢，数据接收过快而导致的一系列问题。但是这种方式也有自己的局限，当生产环境中数据生产速率高于<code>maxRate</code>，当集群处理能力高于<code>maxRate</code>，这就会导致集群资源浪费，使用不合理等。所以后续产生了动态控制数据接收速率的机制-backpressure</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2016/12/24/SparkStreaming-BackPressure/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -408,150 +568,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/24/SparkStreaming-BackPressure/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myphoto.jpg">
-      <meta itemprop="name" content="liyan">
-      <meta itemprop="description" content="我的世界不止计算机">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LIYAN BLOG">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/12/24/SparkStreaming-BackPressure/" class="post-title-link" itemprop="url">Spark Streamig backpressure 机制</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2016-12-24 00:00:00" itemprop="dateCreated datePublished" datetime="2016-12-24T00:00:00+08:00">2016-12-24</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-06 12:51:05" itemprop="dateModified" datetime="2019-12-06T12:51:05+08:00">2019-12-06</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Spark-Streamig-backpressure-机制"><a href="#Spark-Streamig-backpressure-机制" class="headerlink" title="Spark Streamig backpressure 机制"></a>Spark Streamig backpressure 机制</h1><h2 id="一、背景"><a href="#一、背景" class="headerlink" title="一、背景"></a>一、背景</h2><p>Spark Streaming实现流式处理的最基本原理就是周期性，持续的生成任务来处理数据。在这个过程有两个概念：任务生成周期(batch interval)和数据处理时间(batch processing time)。如果数据处理时间大于任务提交间隔,意味着数据的接收速率已经大于数据的处理速度了，如果数据的存储策略是内存(<code>MEMORY_ONLY</code>)，则会导致内存数据丢失，数据丢失；如果数据存储策略是内存和磁盘，则数据会溢写到磁盘，降低数据处理性能。<br>在1.5.x版本之前采取的是最简单的方式：即限流(<code>spark.streaming.receiver.maxRate</code>)，通过这个配置项减小数据接收的速率，防止数据处理太慢，数据接收过快而导致的一系列问题。但是这种方式也有自己的局限，当生产环境中数据生产速率高于<code>maxRate</code>，当集群处理能力高于<code>maxRate</code>，这就会导致集群资源浪费，使用不合理等。所以后续产生了动态控制数据接收速率的机制-backpressure</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/12/24/SparkStreaming-BackPressure/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/18/2016%E6%8B%BE%E5%BF%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myphoto.jpg">
-      <meta itemprop="name" content="liyan">
-      <meta itemprop="description" content="我的世界不止计算机">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LIYAN BLOG">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/12/18/2016%E6%8B%BE%E5%BF%86/" class="post-title-link" itemprop="url">2016拾忆</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2016-12-18 00:00:00" itemprop="dateCreated datePublished" datetime="2016-12-18T00:00:00+08:00">2016-12-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-06 12:51:42" itemprop="dateModified" datetime="2019-12-06T12:51:42+08:00">2019-12-06</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="2016拾忆"><a href="#2016拾忆" class="headerlink" title="2016拾忆"></a>2016拾忆</h1><h2 id="一，从士兵突击说起"><a href="#一，从士兵突击说起" class="headerlink" title="一，从士兵突击说起"></a>一，从士兵突击说起</h2><p>这部电视剧已经很久了，但是我经常会把这部电视剧翻出来看看，不知道为什么我逐渐喜欢老的东西，喜欢时间久一些的只言片语，也许就像大家常说的那样吧，沉下来的才是精华。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2016/12/18/2016%E6%8B%BE%E5%BF%86/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -602,12 +618,12 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-count">37</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
