@@ -193,7 +193,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2021-03-26 00:00:00 / Modified: 19:58:55" itemprop="dateCreated datePublished" datetime="2021-03-26T00:00:00+08:00">2021-03-26</time>
+              <time title="Created: 2021-03-26 00:00:00 / Modified: 20:35:39" itemprop="dateCreated datePublished" datetime="2021-03-26T00:00:00+08:00">2021-03-26</time>
             </span>
 
           
@@ -207,14 +207,14 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="OapRuntime"><a href="#OapRuntime" class="headerlink" title="OapRuntime"></a>OapRuntime</h1><p>OapRuntime 是一个trait，内部定义了一些列的运行时管理对象接口。包括：</p>
+          <h1 id="OapRuntime"><a href="#OapRuntime" class="headerlink" title="OapRuntime"></a>OapRuntime</h1><p>OapRuntime 是一个trait，内部定义了一系列的运行时管理对象接口。包括：</p>
 <ul>
 <li>fiberSensor: <code>FiberSensor</code>运行在Driver端，记录了 <code>FiberCache</code>的信息，主要包括文件缓存的位置信息和统计信息。</li>
 <li>fiberCacheManager：管理<code>FiberCache</code>的容器，提供缓存的读取，更新，修改等操作，提供多介质的存储后端</li>
-<li>oapRpcManager：<code>OapRpcManager</code>基于Spark RPC框架定制的消息管理接口，该接口的实现也包括两部分，其中包括是在Driver端和Executor端。</li>
+<li>oapRpcManager：<code>OapRpcManager</code>基于Spark RPC框架定制的消息管理接口，该接口的实现也包括两部分，包括是在Driver端运行实例和Executor端运行实例。</li>
 <li>oapMetricsManager: <code>OapMetricsManager</code>主要管理OAP的Metrics信息</li>
 <li>dataFileMetaCacheManager</li>
-<li>stop</li>
+<li>stop 运行时关闭清理函数</li>
 </ul>
           <!--noindex-->
             <div class="post-button">
