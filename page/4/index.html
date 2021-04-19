@@ -168,6 +168,78 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/24/SparkStreaming-BackPressure/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2016/12/24/SparkStreaming-BackPressure/" class="post-title-link" itemprop="url">Spark Streamig backpressure 机制</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2016-12-24 00:00:00" itemprop="dateCreated datePublished" datetime="2016-12-24T00:00:00+08:00">2016-12-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-06 12:51:05" itemprop="dateModified" datetime="2019-12-06T12:51:05+08:00">2019-12-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Spark-Streamig-backpressure-机制"><a href="#Spark-Streamig-backpressure-机制" class="headerlink" title="Spark Streamig backpressure 机制"></a>Spark Streamig backpressure 机制</h1><h2 id="一、背景"><a href="#一、背景" class="headerlink" title="一、背景"></a>一、背景</h2><p>Spark Streaming实现流式处理的最基本原理就是周期性，持续的生成任务来处理数据。在这个过程有两个概念：任务生成周期(batch interval)和数据处理时间(batch processing time)。如果数据处理时间大于任务提交间隔,意味着数据的接收速率已经大于数据的处理速度了，如果数据的存储策略是内存(<code>MEMORY_ONLY</code>)，则会导致内存数据丢失，数据丢失；如果数据存储策略是内存和磁盘，则数据会溢写到磁盘，降低数据处理性能。<br>在1.5.x版本之前采取的是最简单的方式：即限流(<code>spark.streaming.receiver.maxRate</code>)，通过这个配置项减小数据接收的速率，防止数据处理太慢，数据接收过快而导致的一系列问题。但是这种方式也有自己的局限，当生产环境中数据生产速率高于<code>maxRate</code>，当集群处理能力高于<code>maxRate</code>，这就会导致集群资源浪费，使用不合理等。所以后续产生了动态控制数据接收速率的机制-backpressure</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2016/12/24/SparkStreaming-BackPressure/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/18/2016%E6%8B%BE%E5%BF%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -513,12 +585,12 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">37</span>
+        <span class="site-state-item-count">39</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
