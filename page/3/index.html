@@ -168,83 +168,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/streaming-kafka-source/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myphoto.jpg">
-      <meta itemprop="name" content="liyan">
-      <meta itemprop="description" content="我的世界不止计算机">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LIYAN BLOG">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/01/05/streaming-kafka-source/" class="post-title-link" itemprop="url">Structured Streaming Kafka Source 源码分析</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-01-05 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-05T00:00:00+08:00">2018-01-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-06 12:51:11" itemprop="dateModified" datetime="2019-12-06T12:51:11+08:00">2019-12-06</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="KafkaSourceProvider"><a href="#KafkaSourceProvider" class="headerlink" title="KafkaSourceProvider"></a>KafkaSourceProvider</h2><p>自定义<code>SourceProvider</code>可以向<code>Structured Streaming</code>注册自定义Source，其实现了<code>StreamSourceProvider</code>和 <code>DataSourceRegister</code>接口。需要重写以下三个方法：</p>
-<ul>
-<li>sourceSchema<br>获取数据源的schema信息，返回类型是<code>Tuple[_,_]</code>,其中的key代表数据源的别名，value表示数据源的schema</li>
-<li>createSource<br>创建一个<code>org.apache.spark.sql.execution.streaming.Source</code>接口的实现，表示数据源对象</li>
-<li>shortName<br>自定义的数据源名称，这个数据源名称会提供给用户的format方法设置数据源</li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/01/05/streaming-kafka-source/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/kafka_startup/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -454,6 +377,83 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/01/05/logmanager/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/streaming-kafka-source/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/01/05/streaming-kafka-source/" class="post-title-link" itemprop="url">Structured Streaming Kafka Source 源码分析</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-01-05 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-05T00:00:00+08:00">2018-01-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-06 12:51:11" itemprop="dateModified" datetime="2019-12-06T12:51:11+08:00">2019-12-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="KafkaSourceProvider"><a href="#KafkaSourceProvider" class="headerlink" title="KafkaSourceProvider"></a>KafkaSourceProvider</h2><p>自定义<code>SourceProvider</code>可以向<code>Structured Streaming</code>注册自定义Source，其实现了<code>StreamSourceProvider</code>和 <code>DataSourceRegister</code>接口。需要重写以下三个方法：</p>
+<ul>
+<li>sourceSchema<br>获取数据源的schema信息，返回类型是<code>Tuple[_,_]</code>,其中的key代表数据源的别名，value表示数据源的schema</li>
+<li>createSource<br>创建一个<code>org.apache.spark.sql.execution.streaming.Source</code>接口的实现，表示数据源对象</li>
+<li>shortName<br>自定义的数据源名称，这个数据源名称会提供给用户的format方法设置数据源</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/01/05/streaming-kafka-source/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
