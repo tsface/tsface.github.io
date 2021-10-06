@@ -168,7 +168,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/kafka_startup/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/logmanager/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/myphoto.jpg">
@@ -182,7 +182,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/2018/01/05/kafka_startup/" class="post-title-link" itemprop="url">kafka启动流程分析</a>
+            <a href="/2018/01/05/logmanager/" class="post-title-link" itemprop="url">Kafka LogManager分析</a>
         </h1>
 
         <div class="post-meta">
@@ -199,7 +199,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-06 12:52:36" itemprop="dateModified" datetime="2019-12-06T12:52:36+08:00">2019-12-06</time>
+                <time title="Modified: 2019-12-06 12:52:25" itemprop="dateModified" datetime="2019-12-06T12:52:25+08:00">2019-12-06</time>
               </span>
 
           
@@ -213,26 +213,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="kafka启动流程分析"><a href="#kafka启动流程分析" class="headerlink" title="kafka启动流程分析"></a>kafka启动流程分析</h2><ol>
-<li>修改当前broker的状态为<code>Starting</code></li>
-<li>启动kafka内部调度器<code>KafkaScheduler</code></li>
-<li>初始化Zookeeper上的kafka基础目录</li>
-<li>创建并启动日志管理对象<code>LogManager</code></li>
-<li>启动通信服务<code>SocketServer</code></li>
-<li>创建<code>ReplicaManager</code>管理对象</li>
-<li>创建offset管理线程<code>OffsetManager</code></li>
-<li>创建<code>KafkaController</code></li>
-<li>启动请求处理线程，并修改broker的状态为<code>RunningAsBroker</code></li>
-<li>启动<code>replicaManager</code>服务</li>
-<li>启动<code>KafkaController</code>，进行<code>Controller</code>选举</li>
-<li>创建并启动<code>TopicConfigManager</code>对象</li>
-<li>创建并启动心跳服务<code>KafkaHealthcheck</code></li>
-<li>注册动态统计到JMX</li>
-<li>启动完成</li>
-</ol>
+          <h2 id="LogManager分析"><a href="#LogManager分析" class="headerlink" title="LogManager分析"></a>LogManager分析</h2><p><code>LogManager</code>是kafka的日志管理子系统，此系统负责日志的创建，恢复和清理。所有的数据读写操作被委派给具体的日志实例。日志管理子系统维护一个或者多个日志目录，新文件在数据最少的日志目录中创建。<br>其内部有一个后台线程负责周期性的处理日志回滚操作。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2018/01/05/kafka_startup/#more" rel="contents">
+              <a class="btn" href="/2018/01/05/logmanager/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
@@ -333,78 +317,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/logmanager/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/myphoto.jpg">
-      <meta itemprop="name" content="liyan">
-      <meta itemprop="description" content="我的世界不止计算机">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="LIYAN BLOG">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/01/05/logmanager/" class="post-title-link" itemprop="url">Kafka LogManager分析</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-01-05 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-05T00:00:00+08:00">2018-01-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-06 12:52:25" itemprop="dateModified" datetime="2019-12-06T12:52:25+08:00">2019-12-06</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="LogManager分析"><a href="#LogManager分析" class="headerlink" title="LogManager分析"></a>LogManager分析</h2><p><code>LogManager</code>是kafka的日志管理子系统，此系统负责日志的创建，恢复和清理。所有的数据读写操作被委派给具体的日志实例。日志管理子系统维护一个或者多个日志目录，新文件在数据最少的日志目录中创建。<br>其内部有一个后台线程负责周期性的处理日志回滚操作。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/01/05/logmanager/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/scala-implicit/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -454,6 +366,94 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/01/05/scala-implicit/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/kafka_startup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/01/05/kafka_startup/" class="post-title-link" itemprop="url">kafka启动流程分析</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-01-05 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-05T00:00:00+08:00">2018-01-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-06 12:52:36" itemprop="dateModified" datetime="2019-12-06T12:52:36+08:00">2019-12-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="kafka启动流程分析"><a href="#kafka启动流程分析" class="headerlink" title="kafka启动流程分析"></a>kafka启动流程分析</h2><ol>
+<li>修改当前broker的状态为<code>Starting</code></li>
+<li>启动kafka内部调度器<code>KafkaScheduler</code></li>
+<li>初始化Zookeeper上的kafka基础目录</li>
+<li>创建并启动日志管理对象<code>LogManager</code></li>
+<li>启动通信服务<code>SocketServer</code></li>
+<li>创建<code>ReplicaManager</code>管理对象</li>
+<li>创建offset管理线程<code>OffsetManager</code></li>
+<li>创建<code>KafkaController</code></li>
+<li>启动请求处理线程，并修改broker的状态为<code>RunningAsBroker</code></li>
+<li>启动<code>replicaManager</code>服务</li>
+<li>启动<code>KafkaController</code>，进行<code>Controller</code>选举</li>
+<li>创建并启动<code>TopicConfigManager</code>对象</li>
+<li>创建并启动心跳服务<code>KafkaHealthcheck</code></li>
+<li>注册动态统计到JMX</li>
+<li>启动完成</li>
+</ol>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/01/05/kafka_startup/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
