@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Mist',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="LogSegment为了防止Log文件过大，将Log切分成多个日志文件，每个日志文件对应一个LogSegment。在LogSegment中封装了一个FileMessageSet和一个OffsetIndex对象，提供日志文件和索引文件的读写功能以及其他辅助功能。  log：用于操作对应日志文件对的FileMessageSet对象 index：用于操作对应索引文件的OffsetIndex对象 base">
+<meta name="keywords" content="LogSegment,Kafka,bigdata">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka LogSegment 源码分析">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2018&#x2F;01&#x2F;05&#x2F;LogSegment&#x2F;index.html">
+<meta property="og:site_name" content="LIYAN BLOG">
+<meta property="og:description" content="LogSegment为了防止Log文件过大，将Log切分成多个日志文件，每个日志文件对应一个LogSegment。在LogSegment中封装了一个FileMessageSet和一个OffsetIndex对象，提供日志文件和索引文件的读写功能以及其他辅助功能。  log：用于操作对应日志文件对的FileMessageSet对象 index：用于操作对应索引文件的OffsetIndex对象 base">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-12-06T04:52:18.778Z">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2018/01/05/LogSegment/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Kafka LogSegment 源码分析 | LIYAN BLOG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LIYAN BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">生活,家庭,计算机</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/05/LogSegment/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myphoto.jpg">
+      <meta itemprop="name" content="liyan">
+      <meta itemprop="description" content="我的世界不止计算机">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LIYAN BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kafka LogSegment 源码分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-01-05 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-05T00:00:00+08:00">2018-01-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-12-06 12:52:18" itemprop="dateModified" datetime="2019-12-06T12:52:18+08:00">2019-12-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="LogSegment"><a href="#LogSegment" class="headerlink" title="LogSegment"></a>LogSegment</h2><p>为了防止Log文件过大，将Log切分成多个日志文件，每个日志文件对应一个LogSegment。在LogSegment中封装了一个FileMessageSet和一个OffsetIndex对象，提供日志文件和索引文件的读写功能以及其他辅助功能。</p>
+<ul>
+<li>log：用于操作对应日志文件对的FileMessageSet对象</li>
+<li>index：用于操作对应索引文件的OffsetIndex对象</li>
+<li>baseOffset：LogSegment中第一条消息的offset</li>
+<li>indexIntervalBytes：索引项之间间隔的最小字节数(?????)</li>
+<li>bytesSinceLastIndexEntry：记录自从上次添加索引项之后，在日志文件中累计加入的Message集合的字节数，用于判断西祠索引添加的时机</li>
+<li>created: 标识LogSegment的创建时间，当调用truncateTo()方法将整个日志文件清空时，会将此字段重置为当前时间</li>
+</ul>
+<a id="more"></a>
+
+<h3 id="1-append方法"><a href="#1-append方法" class="headerlink" title="1. append方法"></a>1. append方法</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@nonthreadsafe</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">append</span></span>(firstOffset: <span class="type">Long</span>, largestTimestamp: <span class="type">Long</span>, offsetOfLargestTimestamp: <span class="type">Long</span>, messages: <span class="type">ByteBufferMessageSet</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (messages.sizeInBytes &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    trace(<span class="string">"Inserting %d bytes at offset %d at position %d with largest timestamp %d at offset %d"</span>.format(messages.sizeInBytes, firstOffset, log.sizeInBytes(), largestTimestamp, offsetOfLargestTimestamp))</span><br><span class="line">    <span class="keyword">val</span> physicalPosition = log.sizeInBytes()</span><br><span class="line">    <span class="keyword">if</span> (physicalPosition == <span class="number">0</span>)</span><br><span class="line">      rollingBasedTimestamp = <span class="type">Some</span>(largestTimestamp)</span><br><span class="line">    <span class="comment">// 追加消息到log日志中</span></span><br><span class="line">    log.append(messages)</span><br><span class="line">    <span class="comment">// 在内存中更新时间戳字段并且和offset保持一致</span></span><br><span class="line">    <span class="keyword">if</span> (largestTimestamp &gt; maxTimestampSoFar) &#123;</span><br><span class="line">      maxTimestampSoFar = largestTimestamp</span><br><span class="line">      offsetOfMaxTimestamp = offsetOfLargestTimestamp</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 检查是否更新索引文件</span></span><br><span class="line">    <span class="keyword">if</span>(bytesSinceLastIndexEntry &gt; indexIntervalBytes) &#123;</span><br><span class="line">      index.append(firstOffset, physicalPosition)</span><br><span class="line">      timeIndex.maybeAppend(maxTimestampSoFar, offsetOfMaxTimestamp)</span><br><span class="line">      bytesSinceLastIndexEntry = <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line">    bytesSinceLastIndexEntry += messages.sizeInBytes</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="2-read方法"><a href="#2-read方法" class="headerlink" title="2. read方法"></a>2. read方法</h3><ul>
+<li>startOffset 指定读取的起始消息的offset</li>
+<li>maxOffset 指定读取结束的offset，可以为空</li>
+<li>maxSize 指定读取的最大字节数</li>
+<li>maxPosition 指定读取的最大物理地址，可选参数，默认值是日志文件大小</li>
+<li>minOneMessage 如果是true，将返回第一条Message，即使其超过可读取的最大字节数(<code>maxSize</code>)</li>
+</ul>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@threadsafe</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">read</span></span>(startOffset: <span class="type">Long</span>, maxOffset: <span class="type">Option</span>[<span class="type">Long</span>], maxSize: <span class="type">Int</span>, maxPosition: <span class="type">Long</span> = size,minOneMessage: <span class="type">Boolean</span> = <span class="literal">false</span>): <span class="type">FetchDataInfo</span> = &#123;</span><br><span class="line">  <span class="keyword">if</span> (maxSize &lt; <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(<span class="string">"Invalid max size for log read (%d)"</span>.format(maxSize))</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> logSize = log.sizeInBytes <span class="comment">// this may change, need to save a consistent copy</span></span><br><span class="line">  <span class="keyword">val</span> startOffsetAndSize = translateOffset(startOffset)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// if the start position is already off the end of the log, return null</span></span><br><span class="line">  <span class="keyword">if</span> (startOffsetAndSize == <span class="literal">null</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> (startPosition, messageSetSize) = startOffsetAndSize</span><br><span class="line">  <span class="keyword">val</span> offsetMetadata = <span class="keyword">new</span> <span class="type">LogOffsetMetadata</span>(startOffset, <span class="keyword">this</span>.baseOffset, startPosition.position)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> adjustedMaxSize =</span><br><span class="line">    <span class="keyword">if</span> (minOneMessage) math.max(maxSize, messageSetSize)</span><br><span class="line">    <span class="keyword">else</span> maxSize</span><br><span class="line"></span><br><span class="line">  <span class="comment">// return a log segment but with zero size in the case below</span></span><br><span class="line">  <span class="keyword">if</span> (adjustedMaxSize == <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="type">FetchDataInfo</span>(offsetMetadata, <span class="type">MessageSet</span>.<span class="type">Empty</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// calculate the length of the message set to read based on whether or not they gave us a maxOffset</span></span><br><span class="line">  <span class="keyword">val</span> length = maxOffset <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt;</span><br><span class="line">      <span class="comment">// no max offset, just read until the max position</span></span><br><span class="line">      min((maxPosition - startPosition.position).toInt, adjustedMaxSize)</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(offset) =&gt;</span><br><span class="line">      <span class="comment">// there is a max offset, translate it to a file position and use that to calculate the max read size;</span></span><br><span class="line">      <span class="comment">// when the leader of a partition changes, it's possible for the new leader's high watermark to be less than the</span></span><br><span class="line">      <span class="comment">// true high watermark in the previous leader for a short window. In this window, if a consumer fetches on an</span></span><br><span class="line">      <span class="comment">// offset between new leader's high watermark and the log end offset, we want to return an empty response.</span></span><br><span class="line">      <span class="keyword">if</span> (offset &lt; startOffset)</span><br><span class="line">        <span class="keyword">return</span> <span class="type">FetchDataInfo</span>(offsetMetadata, <span class="type">MessageSet</span>.<span class="type">Empty</span>, firstMessageSetIncomplete = <span class="literal">false</span>)</span><br><span class="line">      <span class="keyword">val</span> mapping = translateOffset(offset, startPosition.position)</span><br><span class="line">      <span class="keyword">val</span> endPosition =</span><br><span class="line">        <span class="keyword">if</span> (mapping == <span class="literal">null</span>)</span><br><span class="line">          logSize <span class="comment">// the max offset is off the end of the log, use the end of the file</span></span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">          mapping._1.position</span><br><span class="line">      min(min(maxPosition, endPosition) - startPosition.position, adjustedMaxSize).toInt</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="type">FetchDataInfo</span>(offsetMetadata, log.read(startPosition.position, length),</span><br><span class="line">    firstMessageSetIncomplete = adjustedMaxSize &lt; messageSetSize)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LogSegment/" rel="tag"># LogSegment</a>
+              <a href="/tags/Kafka/" rel="tag"># Kafka</a>
+              <a href="/tags/bigdata/" rel="tag"># bigdata</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/01/05/kafka_startup/" rel="prev" title="kafka启动流程分析">
+      <i class="fa fa-chevron-left"></i> kafka启动流程分析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/12/02/2018%E8%AF%BB%E7%9A%84%E4%B9%A6/" rel="next" title="2018年书籍等">
+      2018年书籍等 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#LogSegment"><span class="nav-number">1.</span> <span class="nav-text">LogSegment</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-append方法"><span class="nav-number">1.1.</span> <span class="nav-text">1. append方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-read方法"><span class="nav-number">1.2.</span> <span class="nav-text">2. read方法</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="liyan"
+      src="/images/myphoto.jpg">
+  <p class="site-author-name" itemprop="name">liyan</p>
+  <div class="site-description" itemprop="description">我的世界不止计算机</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/tsface" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;tsface" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/mailto:hanily@msn.com" title="E-Mail → mailto:hanily@msn.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">liyan</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
